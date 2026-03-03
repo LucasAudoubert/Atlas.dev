@@ -32,3 +32,6 @@ dist-ssr
 # .vscode
 .vscode/*
 !.vscode/extensions.json
+
+../.vscode/*
+!../.vscode/extensions.json
