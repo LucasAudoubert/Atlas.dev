@@ -26,7 +26,7 @@ function App() {
             }}
           >
             <p className="text-white text-lg mb-8">
-              Une seule carte pour toute les gouverner. Précis, rapide, et
+              Une seule carte pour toute les gouverner. Précise, rapide, et
               entièrement personnalisable.
             </p>
           </div>
