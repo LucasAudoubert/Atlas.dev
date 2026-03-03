@@ -1,6 +1,23 @@
 import { useRef, useEffect } from 'react';
 import { Renderer, Program, Triangle, Mesh } from 'ogl';
 
+interface RippleGridProps {
+  enableRainbow?: boolean;
+  gridColor?: string;
+  rippleIntensity?: number;
+  gridSize?: number;
+  gridThickness?: number;
+  fadeDistance?: number;
+  vignetteStrength?: number;
+  glowIntensity?: number;
+  opacity?: number;
+  gridRotation?: number;
+  mouseInteraction?: boolean;
+  mouseInteractionRadius?: number;
+}
+
+type Uniforms = Record<string, { value: number | number[] | boolean }>;
+
 const RippleGrid = ({
   enableRainbow = false,
   gridColor = '#ffffff',
@@ -13,18 +30,18 @@ const RippleGrid = ({
   opacity = 1.0,
   gridRotation = 0,
   mouseInteraction = true,
-  mouseInteractionRadius = 1
-}) => {
-  const containerRef = useRef(null);
-  const mousePositionRef = useRef({ x: 0.5, y: 0.5 });
-  const targetMouseRef = useRef({ x: 0.5, y: 0.5 });
-  const mouseInfluenceRef = useRef(0);
-  const uniformsRef = useRef(null);
+  mouseInteractionRadius = 1,
+}: RippleGridProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mousePositionRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
+  const targetMouseRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
+  const mouseInfluenceRef = useRef<number>(0);
+  const uniformsRef = useRef<Uniforms | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const hexToRgb = hex => {
+    const hexToRgb = (hex: string): [number, number, number] => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result
         ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255]
@@ -168,13 +185,13 @@ void main() {
     const program = new Program(gl, { vertex: vert, fragment: frag, uniforms });
     const mesh = new Mesh(gl, { geometry, program });
 
-    const resize = () => {
-      const { clientWidth: w, clientHeight: h } = containerRef.current;
+    const resize = (): void => {
+      const { clientWidth: w, clientHeight: h } = containerRef.current!;
       renderer.setSize(w, h);
       uniforms.iResolution.value = [w, h];
     };
 
-    const handleMouseMove = e => {
+    const handleMouseMove = (e: MouseEvent): void => {
       if (!mouseInteraction || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
@@ -182,12 +199,12 @@ void main() {
       targetMouseRef.current = { x, y };
     };
 
-    const handleMouseEnter = () => {
+    const handleMouseEnter = (): void => {
       if (!mouseInteraction) return;
       mouseInfluenceRef.current = 1.0;
     };
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (): void => {
       if (!mouseInteraction) return;
       mouseInfluenceRef.current = 0.0;
     };
@@ -200,7 +217,7 @@ void main() {
     }
     resize();
 
-    const render = t => {
+    const render = (t: number): void => {
       uniforms.iTime.value = t * 0.001;
 
       const lerpFactor = 0.1;
@@ -236,7 +253,7 @@ void main() {
   useEffect(() => {
     if (!uniformsRef.current) return;
 
-    const hexToRgb = hex => {
+    const hexToRgb = (hex: string): [number, number, number] => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result
         ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255]
