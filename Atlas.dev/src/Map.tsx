@@ -1,13 +1,64 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Menu } from "lucide-react";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { useAtlasStore } from "./store/useAtlasStore";
 import { Sidebar } from "./components/map/sidebar";
+import "./style/map.css";
 
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const { toggleMenu, isMenuOpen } = useAtlasStore();
+  const mapInstance = useRef<maplibregl.Map | null>(null);
+  const { toggleMenu, isMenuOpen, viewState, setViewState, isDarkMap } = useAtlasStore();
 
-  // ... (Ton useEffect pour l'initialisation de la carte reste ici)
+  const DARK_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+  const LIGHT_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+
+  useEffect(() => {
+    if (!mapContainer.current || mapInstance.current) return;
+
+    const map = new maplibregl.Map({
+      container: mapContainer.current,
+      style: isDarkMap ? DARK_STYLE : LIGHT_STYLE,
+      center: [viewState.lng, viewState.lat],
+      zoom: viewState.zoom,
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+    map.addControl(
+      new maplibregl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+      }),
+      "bottom-right"
+    );
+
+    map.on("moveend", () => {
+      const center = map.getCenter();
+      setViewState(center.lng, center.lat, map.getZoom());
+    });
+
+    mapInstance.current = map;
+
+    return () => {
+      map.remove();
+      mapInstance.current = null;
+    };
+  }, []);
+
+  // Changer le style de la carte quand le thème change
+  useEffect(() => {
+    if (mapInstance.current) {
+      mapInstance.current.setStyle(isDarkMap ? DARK_STYLE : LIGHT_STYLE);
+    }
+  }, [isDarkMap]);
+
+  // Resize la carte quand le sidebar s'ouvre/ferme
+  useEffect(() => {
+    if (mapInstance.current) {
+      setTimeout(() => mapInstance.current?.resize(), 500);
+    }
+  }, [isMenuOpen]);
 
   return (
     <div className="relative w-full h-screen bg-slate-900 overflow-hidden">
@@ -25,7 +76,12 @@ const Map = () => {
       )}
 
       {/* Le conteneur de la carte */}
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div
+        ref={mapContainer}
+        className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+          isMenuOpen ? 'left-72' : 'left-0'
+        }`}
+      />
 
       {/* Overlay sombre quand le menu est ouvert (optionnel) */}
       {isMenuOpen && (

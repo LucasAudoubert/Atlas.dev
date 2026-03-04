@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { useAtlasStore } from "../../store/useAtlasStore";
-import { Map as MapIcon, Layers, Settings, X } from "lucide-react";
+import { Map as MapIcon, Layers, Settings, X, Moon, Sun } from "lucide-react";
 
 export const Sidebar = () => {
-  const { isMenuOpen, toggleMenu } = useAtlasStore();
+  const { isMenuOpen, toggleMenu, isDarkMap, toggleMapTheme } = useAtlasStore();
 
   return (
     <motion.div
@@ -32,6 +32,13 @@ export const Sidebar = () => {
         </div>
         <div className="flex items-center gap-4 text-slate-400 hover:text-emerald-400 cursor-pointer transition-all">
           <Settings size={20} /> <span>Configuration</span>
+        </div>
+        <div
+          onClick={toggleMapTheme}
+          className="flex items-center gap-4 text-slate-400 hover:text-emerald-400 cursor-pointer transition-all"
+        >
+          {isDarkMap ? <Sun size={20} /> : <Moon size={20} />}
+          <span>{isDarkMap ? "Thème Clair" : "Thème Sombre"}</span>
         </div>
       </nav>
     </motion.div>

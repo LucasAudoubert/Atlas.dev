@@ -1,0 +1,24 @@
+/* USER LOCATION DOT */
+.maplibregl-user-location-dot,
+.maplibregl-user-location-dot::before {
+  background-color: #34d399 !important;
+}
+
+.maplibregl-user-location-dot::after {
+  background-color: #34d399 !important;
+  border-color: #34d399 !important;
+}
+
+.maplibregl-user-location-accuracy-circle {
+  background-color: rgba(52, 211, 153, 0.15) !important;
+}
+
+.maplibregl-ctrl-geolocate .maplibregl-ctrl-icon {
+  background-image: none !important;
+}
+
+.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-active
+  .maplibregl-ctrl-icon {
+  background-image: none !important;
+}
+/* ON LAISSE LES !important POUR PRENDRE PRIORITE SUR LE STYLE PAR DEFAULT OPENSTREETMAP */
