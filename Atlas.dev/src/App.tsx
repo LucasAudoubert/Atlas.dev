@@ -1,8 +1,11 @@
 import "./App.css";
+import { useNavigate } from "react-router-dom";
 import HeroBackground from "./components/Background/HeroBackground";
 import MainButton from "./components/buttons/mainButton";
 
 function App() {
+  const navigate = useNavigate();
+
   return (
     <>
       <main className="relative h-screen w-full flex items-center justify-center bg-[#1a1c24] text-white">
@@ -31,7 +34,7 @@ function App() {
             </p>
           </div>
           <div className="flex justify-center" style={{ marginTop: "48px" }}>
-            <MainButton />
+            <MainButton onClick={() => navigate('/map')} />
           </div>
         </div>
       </main>

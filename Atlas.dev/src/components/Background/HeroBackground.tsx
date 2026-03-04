@@ -1,4 +1,4 @@
-import RippleGrid from "./RippleGrid.js";
+import RippleGrid from "./RippleGrid";
 
 const HeroBackground = () => {
   return (
