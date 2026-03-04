@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -9,7 +9,8 @@ import "./style/map.css";
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
-  const { toggleMenu, isMenuOpen, viewState, setViewState, isDarkMap } = useAtlasStore();
+  const [loading, setLoading] = useState(true);
+  const { toggleMenu, isMenuOpen, viewState, setViewState, isDarkMap, setMapReady } = useAtlasStore();
 
   const DARK_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
   const LIGHT_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
@@ -38,11 +39,17 @@ const Map = () => {
       setViewState(center.lng, center.lat, map.getZoom());
     });
 
+    map.on("load", () => {
+      setLoading(false);
+      setMapReady(true);
+    });
+
     mapInstance.current = map;
 
     return () => {
       map.remove();
       mapInstance.current = null;
+      setMapReady(false);
     };
   }, []);
 
@@ -62,6 +69,19 @@ const Map = () => {
 
   return (
     <div className="relative w-full h-screen bg-slate-900 overflow-hidden">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-[#1a1c24]">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 rounded-full border-4 border-slate-800" />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-400 animate-spin" />
+          </div>
+          <p className="mt-10 text-base text-slate-300 tracking-wide font-medium">
+            Chargement de la carte<span className="animate-pulse">...</span>
+          </p>
+        </div>
+      )}
+
       {/* Le Menu Latéral */}
       <Sidebar />
 

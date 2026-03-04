@@ -5,10 +5,12 @@ interface AtlasState {
   selectedSpotId: string | null;
   isMenuOpen: boolean;
   isDarkMap: boolean;
+  isMapReady: boolean;
   setViewState: (lng: number, lat: number, zoom: number) => void;
   setSelectedSpot: (id: string | null) => void;
   toggleMenu: () => void;
   toggleMapTheme: () => void;
+  setMapReady: (ready: boolean) => void;
 }
 
 export const useAtlasStore = create<AtlasState>((set) => ({
@@ -16,8 +18,10 @@ export const useAtlasStore = create<AtlasState>((set) => ({
   selectedSpotId: null,
   isMenuOpen: false,
   isDarkMap: true,
+  isMapReady: false,
   setViewState: (lng, lat, zoom) => set({ viewState: { lng, lat, zoom } }),
   setSelectedSpot: (id) => set({ selectedSpotId: id }),
   toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen })),
   toggleMapTheme: () => set((state) => ({ isDarkMap: !state.isDarkMap })),
+  setMapReady: (ready) => set({ isMapReady: ready }),
 }));
