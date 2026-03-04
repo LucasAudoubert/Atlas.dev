@@ -34,7 +34,7 @@ function App() {
             </p>
           </div>
           <div className="flex justify-center" style={{ marginTop: "48px" }}>
-            <MainButton onClick={() => navigate('/map')} />
+            <MainButton onClick={() => navigate("/auth")} />
           </div>
         </div>
       </main>
