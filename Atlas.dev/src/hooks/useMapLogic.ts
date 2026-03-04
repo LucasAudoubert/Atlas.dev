@@ -30,7 +30,10 @@ export const useMapLogic = () => {
     map.on("load", () => {
       setLoading(false);
       setMapReady(true);
-      setTimeout(() => map.resize(), 0);
+      // Force multiple resizes to ensure canvas fills container
+      map.resize();
+      setTimeout(() => map.resize(), 100);
+      setTimeout(() => map.resize(), 500);
     });
 
     map.addControl(new maplibregl.NavigationControl(), "bottom-right");

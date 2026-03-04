@@ -7,12 +7,20 @@ interface MapViewProps {
 export const MapView = ({ mapContainer }: MapViewProps) => {
   const { isMenuOpen } = useAtlasStore();
 
+  const sidebarWidth = isMenuOpen ? 240 : 0;
+
   return (
     <div
       ref={mapContainer}
-      className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-        isMenuOpen ? "left-72" : "left-0"
-      }`}
+      style={{
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: sidebarWidth,
+        width: `calc(100% - ${sidebarWidth}px)`,
+        height: "100%",
+        transition: "left 0.5s ease-in-out, width 0.5s ease-in-out",
+      }}
     />
   );
 };
