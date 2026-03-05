@@ -11,12 +11,21 @@ const LIGHT_STYLE =
 export const useMapLogic = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
+  const markers = useRef<Record<string, maplibregl.Marker>>({});
   const [loading, setLoading] = useState(true);
 
-  const { viewState, setViewState, isDarkMap, isMenuOpen, setMapReady } =
-    useAtlasStore();
+  const {
+    viewState,
+    setViewState,
+    isDarkMap,
+    isMenuOpen,
+    setMapReady,
+    pins,
+    addPin,
+    selectedSpotId,
+    setSelectedSpot,
+  } = useAtlasStore();
 
-  // Initialisation de la carte
   useEffect(() => {
     if (!mapContainer.current || mapInstance.current) return;
 
@@ -30,7 +39,6 @@ export const useMapLogic = () => {
     map.on("load", () => {
       setLoading(false);
       setMapReady(true);
-      // Force multiple resizes to ensure canvas fills container
       map.resize();
       setTimeout(() => map.resize(), 100);
       setTimeout(() => map.resize(), 500);
@@ -50,6 +58,33 @@ export const useMapLogic = () => {
       setViewState(center.lng, center.lat, map.getZoom());
     });
 
+    map.on("click", (e) => {
+      const name = prompt("Pin name");
+      if (!name) return;
+
+      const id = crypto.randomUUID();
+
+      const popup = new maplibregl.Popup({ offset: 25 }).setText(name);
+
+      const marker = new maplibregl.Marker()
+        .setLngLat([e.lngLat.lng, e.lngLat.lat])
+        .setPopup(popup)
+        .addTo(map);
+
+      marker.getElement().addEventListener("click", () => {
+        setSelectedSpot(id);
+      });
+
+      markers.current[id] = marker;
+
+      addPin({
+        id,
+        name,
+        lng: e.lngLat.lng,
+        lat: e.lngLat.lat,
+      });
+    });
+
     mapInstance.current = map;
 
     return () => {
@@ -59,19 +94,63 @@ export const useMapLogic = () => {
     };
   }, []);
 
-  // Changer le style de la carte quand le thème change
   useEffect(() => {
     if (mapInstance.current) {
       mapInstance.current.setStyle(isDarkMap ? DARK_STYLE : LIGHT_STYLE);
     }
   }, [isDarkMap]);
 
-  // Resize la carte quand le sidebar s'ouvre/ferme
   useEffect(() => {
     if (mapInstance.current) {
       setTimeout(() => mapInstance.current?.resize(), 500);
     }
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (!mapInstance.current) return;
+    const map = mapInstance.current;
+
+    pins.forEach((pin) => {
+      if (!markers.current[pin.id]) {
+        const popup = new maplibregl.Popup({ offset: 25 }).setText(pin.name);
+
+        const marker = new maplibregl.Marker()
+          .setLngLat([pin.lng, pin.lat])
+          .setPopup(popup)
+          .addTo(map);
+
+        marker.getElement().addEventListener("click", () => {
+          setSelectedSpot(pin.id);
+        });
+
+        markers.current[pin.id] = marker;
+      }
+    });
+
+    Object.keys(markers.current).forEach((id) => {
+      const exists = pins.find((p) => p.id === id);
+      if (!exists) {
+        markers.current[id].remove();
+        delete markers.current[id];
+      }
+    });
+  }, [pins]);
+
+  useEffect(() => {
+    if (!mapInstance.current || !selectedSpotId) return;
+
+    const pin = pins.find((p) => p.id === selectedSpotId);
+    if (!pin) return;
+
+    mapInstance.current.flyTo({
+      center: [pin.lng, pin.lat],
+      zoom: 15,
+      duration: 800,
+    });
+
+    const marker = markers.current[selectedSpotId];
+    marker?.togglePopup();
+  }, [selectedSpotId]);
 
   return { mapContainer, mapInstance, loading };
 };
