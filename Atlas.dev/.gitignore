@@ -39,3 +39,6 @@ dist-ssr
 # supabase
 supabase
 supabase/*
+
+# todo
+todo.md

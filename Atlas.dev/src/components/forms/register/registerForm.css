@@ -19,7 +19,7 @@
   display: flex;
   align-items: center;
   padding-left: 30px;
-  color: #00bfff;
+  color: #34d399;
 }
 
 .title::before {
@@ -41,10 +41,10 @@
   width: 16px;
   border-radius: 50%;
   left: 0px;
-  background-color: #00bfff;
+  background-color: #34d399;
 }
 
-.message, 
+.message,
 .signin {
   font-size: 14.5px;
   color: rgba(255, 255, 255, 0.7);
@@ -59,7 +59,7 @@
 }
 
 .signin a {
-  color: #00bfff;
+  color: #34d399;
 }
 
 .flex {
@@ -99,7 +99,7 @@
 
 .form label .input:focus + span,
 .form label .input:valid + span {
-  color: #00bfff;
+  color: #34d399;
   top: 0px;
   font-size: 0.7em;
   font-weight: 600;
@@ -116,12 +116,12 @@
   border-radius: 10px;
   color: #fff;
   font-size: 16px;
-  transform: .3s ease;
-  background-color: #00bfff;
+  transform: 0.3s ease;
+  background-color: #34d399;
 }
 
 .submit:hover {
-  background-color: #00bfff96;
+  background-color: #34d39996;
 }
 
 @keyframes pulse {
