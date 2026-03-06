@@ -14,6 +14,8 @@ import {
   UserPlus,
 } from "lucide-react";
 
+import { PinList } from "../map/PinList";
+
 export const Sidebar = () => {
   const { isMenuOpen, toggleMenu, isDarkMap, toggleMapTheme } = useAtlasStore();
   const { user, signOut } = useAuth();
@@ -64,6 +66,7 @@ export const Sidebar = () => {
         </div>
       </nav>
       </div>
+      <PinList />
 
       <div className="border-t border-slate-800 pt-3">
         {user ? (
