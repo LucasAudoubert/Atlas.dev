@@ -2,13 +2,13 @@ import React from "react";
 import "./mainButton.css";
 
 interface MainButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    label?: string;
+  label?: string;
 }
 
 const MainButton = ({ label = "Go!", ...rest }: MainButtonProps) => {
   return (
     <button className="Btn-Container" {...rest}>
-      <span className="text">{label}</span>
+      <span className="mainBtn-text">{label}</span>
       <span className="icon-Container">
         <svg
           width="16"

@@ -101,7 +101,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit }) => {
       </label>
       <button className="submit">Submit</button>
       <p className="signin">
-        Already have an account? <a href="#">Signin</a>
+        Already have an account? <a href="/auth">Signin</a>
       </p>
     </form>
   );

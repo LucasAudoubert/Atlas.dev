@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { signOut as apiSignOut } from "../api/auth";
 
 export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -8,14 +9,14 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
+    // Récupère la session initiale
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for auth changes
+    // Écoute les changements d'état d'auth
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -28,7 +29,7 @@ export const useAuth = () => {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await apiSignOut();
   };
 
   return { session, user, loading, signOut };
