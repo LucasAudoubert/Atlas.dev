@@ -3,8 +3,9 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./global.css";
 import App from "./App.tsx";
-import MapPage from "./pages/MapPage.tsx";
+import MapInfo from "./pages/MapInfo";
 import AuthPage from "./pages/AuthPage.tsx";
+
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -12,7 +13,8 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/map" element={<MapPage />} />
+       <Route path="/map" element={<MapInfo />} />
+
       </Routes>
     </BrowserRouter>
   </StrictMode>,
