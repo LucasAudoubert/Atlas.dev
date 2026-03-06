@@ -5,7 +5,7 @@ interface BurgerButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   isOpen: boolean;
 }
 
-const BurgerButton = ({ isOpen, style, ...rest }: BurgerButtonProps) => {
+const BurgerButton = ({ isOpen, style }: BurgerButtonProps) => {
   return (
     <label
       className="hamburger"
