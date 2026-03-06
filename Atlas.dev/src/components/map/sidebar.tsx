@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAtlasStore } from "../../store/useAtlasStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -13,15 +13,19 @@ import {
   Sun,
   LogIn,
   UserPlus,
+  MapPin,
+  ChevronDown,
 } from "lucide-react";
 import { PinList } from "../map/PinList";
 import LogoutButton from "../buttons/logoutButtn/logoutButton";
 
 export const Sidebar = () => {
-  const { isMenuOpen, toggleMenu, isDarkMap, toggleMapTheme } = useAtlasStore();
+  const { isMenuOpen, toggleMenu, isDarkMap, toggleMapTheme, pins } =
+    useAtlasStore();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isPinsOpen, setIsPinsOpen] = useState(true);
 
   useEffect(() => {
     if (user) getProfile().then(setProfile);
@@ -87,8 +91,45 @@ export const Sidebar = () => {
       </nav>
 
       {/* ── Pin List ──────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-3 mt-4">
-        <PinList />
+      <div className="flex-1 overflow-y-auto px-3 mt-2 min-h-0">
+        {/* Collapsible header */}
+        <button
+          onClick={() => setIsPinsOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-2 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors group"
+        >
+          <div className="flex items-center gap-2">
+            <MapPin size={15} />
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              Mes Pins
+            </span>
+            <span className="text-[11px] bg-slate-800 group-hover:bg-slate-700 rounded-full px-1.5 py-0.5 text-slate-400">
+              {pins.length}
+            </span>
+          </div>
+          <motion.div
+            animate={{ rotate: isPinsOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown size={14} />
+          </motion.div>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {isPinsOpen && (
+            <motion.div
+              key="pinlist"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ overflow: "hidden" }}
+            >
+              <div className="pt-1 pb-2">
+                <PinList />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── Footer / Profil ───────────────────────────── */}

@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useAtlasStore } from "../store/useAtlasStore";
+import { pinColorToFilter } from "../schemas/pin";
 
 const DARK_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
@@ -21,9 +22,9 @@ export const useMapLogic = () => {
     isMenuOpen,
     setMapReady,
     pins,
-    addPin,
     selectedSpotId,
     setSelectedSpot,
+    setPendingPin,
   } = useAtlasStore();
 
   useEffect(() => {
@@ -59,30 +60,7 @@ export const useMapLogic = () => {
     });
 
     map.on("click", (e) => {
-      const name = prompt("Pin name");
-      if (!name) return;
-
-      const id = crypto.randomUUID();
-
-      const popup = new maplibregl.Popup({ offset: 25 }).setText(name);
-
-      const marker = new maplibregl.Marker()
-        .setLngLat([e.lngLat.lng, e.lngLat.lat])
-        .setPopup(popup)
-        .addTo(map);
-
-      marker.getElement().addEventListener("click", () => {
-        setSelectedSpot(id);
-      });
-
-      markers.current[id] = marker;
-
-      addPin({
-        id,
-        name,
-        lng: e.lngLat.lng,
-        lat: e.lngLat.lat,
-      });
+      setPendingPin({ lng: e.lngLat.lng, lat: e.lngLat.lat });
     });
 
     mapInstance.current = map;
@@ -112,14 +90,26 @@ export const useMapLogic = () => {
 
     pins.forEach((pin) => {
       if (!markers.current[pin.id]) {
-        const popup = new maplibregl.Popup({ offset: 25 }).setText(pin.name);
+        const el = document.createElement("img");
+        el.src = "/map/pin.png";
+        el.style.width = "36px";
+        el.style.height = "36px";
+        el.style.cursor = "pointer";
+        el.style.filter = pinColorToFilter(pin.color ?? "#10b981");
 
-        const marker = new maplibregl.Marker()
+        const popup = new maplibregl.Popup({ offset: 30 }).setHTML(
+          `<div style="font-family:monospace;padding:4px 2px">
+            <strong>${pin.name}</strong>
+            ${pin.description ? `<p style="margin:4px 0 0;font-size:12px;opacity:.8">${pin.description}</p>` : ""}
+          </div>`,
+        );
+
+        const marker = new maplibregl.Marker({ element: el })
           .setLngLat([pin.lng, pin.lat])
           .setPopup(popup)
           .addTo(map);
 
-        marker.getElement().addEventListener("click", () => {
+        el.addEventListener("click", () => {
           setSelectedSpot(pin.id);
         });
 

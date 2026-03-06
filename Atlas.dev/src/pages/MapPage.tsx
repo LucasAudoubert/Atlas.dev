@@ -1,11 +1,25 @@
+import { useEffect } from "react";
 import { Sidebar } from "../components/map/sidebar";
 import { MapView } from "../components/map/MapView";
 import { MapControls } from "../components/map/MapControls";
+import { PinCreationOverlay } from "../components/map/PinCreationOverlay";
 import { useMapLogic } from "../hooks/useMapLogic";
+import { useAuth } from "../hooks/useAuth";
+import { useAtlasStore } from "../store/useAtlasStore";
+import { getUserPins } from "../api/pin";
 import "../style/map.css";
 
 const MapPage = () => {
   const { mapContainer, loading } = useMapLogic();
+  const { user } = useAuth();
+  const { hydrateRemotePins } = useAtlasStore();
+
+  // Hydrate Supabase pins when the user logs in
+  useEffect(() => {
+    if (user) {
+      getUserPins().then(hydrateRemotePins);
+    }
+  }, [user]);
 
   return (
     <div className="relative w-full h-screen bg-slate-900 overflow-hidden">
@@ -25,6 +39,7 @@ const MapPage = () => {
       <Sidebar />
       <MapControls />
       <MapView mapContainer={mapContainer} />
+      <PinCreationOverlay />
     </div>
   );
 };
