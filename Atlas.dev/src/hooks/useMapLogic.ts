@@ -3,11 +3,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useAtlasStore } from "../store/useAtlasStore";
 import { pinColorToFilter } from "../schemas/pin";
-
-const DARK_STYLE =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
-const LIGHT_STYLE =
-  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+import { fetchClosestImageId } from "../lib/mapillaryApi";
 
 export const useMapLogic = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -18,21 +14,30 @@ export const useMapLogic = () => {
   const {
     viewState,
     setViewState,
-    isDarkMap,
+    mapStyleUrl,
     isMenuOpen,
     setMapReady,
     pins,
     selectedSpotId,
     setSelectedSpot,
     setPendingPin,
+    streetViewMode,
+    streetViewImageId,
+    setStreetViewImageId,
   } = useAtlasStore();
+
+  // Ref so the map click handler always sees the latest value
+  const streetViewModeRef = useRef(streetViewMode);
+  useEffect(() => {
+    streetViewModeRef.current = streetViewMode;
+  }, [streetViewMode]);
 
   useEffect(() => {
     if (!mapContainer.current || mapInstance.current) return;
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: isDarkMap ? DARK_STYLE : LIGHT_STYLE,
+      style: mapStyleUrl,
       center: [viewState.lng, viewState.lat],
       zoom: viewState.zoom,
     });
@@ -60,8 +65,18 @@ export const useMapLogic = () => {
     });
 
     map.on("click", (e) => {
-      setPendingPin({ lng: e.lngLat.lng, lat: e.lngLat.lat });
+      if (streetViewModeRef.current) {
+        fetchClosestImageId(e.lngLat.lng, e.lngLat.lat).then((id) => {
+          // Always open the panel — show error inside if no image found
+          setStreetViewImageId(id ?? "__not_found__");
+        });
+      } else {
+        setPendingPin({ lng: e.lngLat.lng, lat: e.lngLat.lat });
+      }
     });
+
+    // Update cursor to crosshair when in street-view mode
+    map.getCanvas().style.cursor = "";
 
     mapInstance.current = map;
 
@@ -74,15 +89,31 @@ export const useMapLogic = () => {
 
   useEffect(() => {
     if (mapInstance.current) {
-      mapInstance.current.setStyle(isDarkMap ? DARK_STYLE : LIGHT_STYLE);
+      mapInstance.current.setStyle(mapStyleUrl);
     }
-  }, [isDarkMap]);
+  }, [mapStyleUrl]);
 
   useEffect(() => {
     if (mapInstance.current) {
       setTimeout(() => mapInstance.current?.resize(), 500);
     }
   }, [isMenuOpen]);
+
+  // Resize map when Street View panel opens / closes
+  useEffect(() => {
+    if (mapInstance.current) {
+      setTimeout(() => mapInstance.current?.resize(), 350);
+    }
+  }, [streetViewImageId]);
+
+  // Update cursor style when street view mode toggles
+  useEffect(() => {
+    if (mapInstance.current) {
+      mapInstance.current.getCanvas().style.cursor = streetViewMode
+        ? "crosshair"
+        : "";
+    }
+  }, [streetViewMode]);
 
   useEffect(() => {
     if (!mapInstance.current) return;

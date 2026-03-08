@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { type Pin } from "../schemas/pin";
+import { DEFAULT_MAP_STYLE } from "../schemas/mapLayer";
 
 // Re-export Pin so imports from the store continue to work
 export type { Pin };
@@ -11,22 +12,28 @@ interface AtlasState {
   viewState: { lng: number; lat: number; zoom: number };
   selectedSpotId: string | null;
   isMenuOpen: boolean;
-  isDarkMap: boolean;
+  mapStyleUrl: string;
   isMapReady: boolean;
   /** Temporary coords while the user fills the pin creation form. */
   pendingPin: { lng: number; lat: number } | null;
   pins: Pin[];
+  /** When true, map clicks open Street View instead of the pin form. */
+  streetViewMode: boolean;
+  /** The currently displayed Mapillary image ID, null when panel is closed. */
+  streetViewImageId: string | null;
 
   setViewState: (lng: number, lat: number, zoom: number) => void;
   setSelectedSpot: (id: string | null) => void;
   toggleMenu: () => void;
-  toggleMapTheme: () => void;
+  setMapStyle: (url: string) => void;
   setMapReady: (ready: boolean) => void;
   setPendingPin: (coords: { lng: number; lat: number } | null) => void;
   addPin: (pin: Pin) => void;
   removePin: (id: string) => void;
   /** Merges remote Supabase pins without duplicating local ones. */
   hydrateRemotePins: (remotePins: Pin[]) => void;
+  toggleStreetViewMode: () => void;
+  setStreetViewImageId: (id: string | null) => void;
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -37,15 +44,17 @@ export const useAtlasStore = create<AtlasState>()(
       viewState: { lng: 2.3522, lat: 48.8566, zoom: 12 },
       selectedSpotId: null,
       isMenuOpen: false,
-      isDarkMap: true,
+      mapStyleUrl: DEFAULT_MAP_STYLE,
       isMapReady: false,
       pendingPin: null,
       pins: [],
+      streetViewMode: false,
+      streetViewImageId: null,
 
       setViewState: (lng, lat, zoom) => set({ viewState: { lng, lat, zoom } }),
       setSelectedSpot: (id) => set({ selectedSpotId: id }),
       toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen })),
-      toggleMapTheme: () => set((state) => ({ isDarkMap: !state.isDarkMap })),
+      setMapStyle: (url) => set({ mapStyleUrl: url }),
       setMapReady: (ready) => set({ isMapReady: ready }),
       setPendingPin: (coords) => set({ pendingPin: coords }),
 
@@ -63,6 +72,17 @@ export const useAtlasStore = create<AtlasState>()(
         if (newRemote.length > 0)
           set((state) => ({ pins: [...state.pins, ...newRemote] }));
       },
+
+      toggleStreetViewMode: () =>
+        set((state) => ({
+          streetViewMode: !state.streetViewMode,
+          // closing mode also closes the panel
+          streetViewImageId: state.streetViewMode
+            ? null
+            : state.streetViewImageId,
+        })),
+
+      setStreetViewImageId: (id) => set({ streetViewImageId: id }),
     }),
     {
       name: "atlas-pins",

@@ -2,30 +2,52 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAtlasStore } from "../../store/useAtlasStore";
 import { useAuth } from "../../hooks/useAuth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { getProfile, type UserProfile } from "../../api/user";
 import {
   Map as MapIcon,
-  Layers,
   Settings,
   X,
-  Moon,
-  Sun,
   LogIn,
   UserPlus,
   MapPin,
   ChevronDown,
+  Layers,
+  Moon,
+  Sun,
+  Navigation,
+  Globe,
+  Compass,
+  Camera,
 } from "lucide-react";
+import { MAP_LAYERS } from "../../schemas/mapLayer";
 import { PinList } from "../map/PinList";
 import LogoutButton from "../buttons/logoutButtn/logoutButton";
 
 export const Sidebar = () => {
-  const { isMenuOpen, toggleMenu, isDarkMap, toggleMapTheme, pins } =
-    useAtlasStore();
+  const {
+    isMenuOpen,
+    toggleMenu,
+    mapStyleUrl,
+    setMapStyle,
+    pins,
+    streetViewMode,
+    toggleStreetViewMode,
+  } = useAtlasStore();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isPinsOpen, setIsPinsOpen] = useState(true);
+  const [isLayersOpen, setIsLayersOpen] = useState(false);
+
+  const LAYER_ICONS: Record<string, ReactNode> = {
+    dark: <Moon size={14} />,
+    light: <Sun size={14} />,
+    voyager: <Navigation size={14} />,
+    terrain: <Globe size={14} />,
+    bright: <MapIcon size={14} />,
+    liberty: <Compass size={14} />,
+  };
 
   useEffect(() => {
     if (user) getProfile().then(setProfile);
@@ -70,7 +92,6 @@ export const Sidebar = () => {
       <nav className="flex flex-col gap-1 px-3 pt-4">
         {[
           { icon: <MapIcon size={17} />, label: "Ma Carte" },
-          { icon: <Layers size={17} />, label: "Couches" },
           { icon: <Settings size={17} />, label: "Configuration" },
         ].map(({ icon, label }) => (
           <div
@@ -81,13 +102,81 @@ export const Sidebar = () => {
             <span>{label}</span>
           </div>
         ))}
-        <div
-          onClick={toggleMapTheme}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer transition-all"
+
+        {/* Street View toggle */}
+        <button
+          onClick={toggleStreetViewMode}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+            streetViewMode
+              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40"
+              : "text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent"
+          }`}
         >
-          {isDarkMap ? <Sun size={17} /> : <Moon size={17} />}
-          <span>{isDarkMap ? "Thème Clair" : "Thème Sombre"}</span>
-        </div>
+          <Camera size={17} />
+          <span>Street View</span>
+          {streetViewMode && (
+            <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+              ACTIF
+            </span>
+          )}
+        </button>
+
+        {/* Couches — collapsible */}
+        <button
+          onClick={() => setIsLayersOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Layers size={17} />
+            <span>Couches</span>
+          </div>
+          <motion.div
+            animate={{ rotate: isLayersOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown size={13} />
+          </motion.div>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {isLayersOpen && (
+            <motion.div
+              key="layers"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              style={{ overflow: "hidden" }}
+            >
+              <div className="grid grid-cols-2 gap-1.5 px-1 pb-1 pt-0.5">
+                {MAP_LAYERS.map((layer) => {
+                  const active = mapStyleUrl === layer.url;
+                  return (
+                    <button
+                      key={layer.id}
+                      onClick={() => setMapStyle(layer.url)}
+                      className={`flex flex-col items-start gap-1 px-2.5 py-2 rounded-xl border text-left transition-all ${
+                        active
+                          ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-400"
+                          : "bg-slate-800/60 border-slate-700/50 text-slate-400 hover:border-slate-600 hover:text-white"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        {LAYER_ICONS[layer.id]}
+                        <span className="text-xs font-medium">
+                          {layer.label}
+                        </span>
+                      </span>
+                      <span className="text-[10px] opacity-60 truncate w-full">
+                        {layer.description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ── Pin List ──────────────────────────────────── */}
@@ -132,8 +221,24 @@ export const Sidebar = () => {
         </AnimatePresence>
       </div>
 
+      {/* ── Separator ─────────────────────────────────── */}
+      <div className="px-5 pt-3 pb-1">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-px bg-slate-800" />
+          <span className="text-[10px] text-white/70 uppercase tracking-widest">
+            Compte
+          </span>
+          <div className="flex-1 h-px bg-slate-800" />
+        </div>
+      </div>
+
       {/* ── Footer / Profil ───────────────────────────── */}
-      <div className="border-t border-slate-800 px-4 py-4">
+      <div
+        className="px-4 pb-14 pt-4"
+        style={{
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)",
+        }}
+      >
         {user ? (
           <div className="flex flex-col gap-3">
             {/* Profile card */}
@@ -152,13 +257,13 @@ export const Sidebar = () => {
             </div>
 
             {/* Logout */}
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-1">
               <LogoutButton onClick={handleSignOut} label="Déconnexion" />
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="text-[11px] text-slate-500 uppercase tracking-wider px-1 mb-1">
+            <p className="text-[11px] text-white/70 uppercase tracking-wider px-1 mb-1">
               Compte
             </p>
             <div

@@ -3,6 +3,8 @@ import { Sidebar } from "../components/map/sidebar";
 import { MapView } from "../components/map/MapView";
 import { MapControls } from "../components/map/MapControls";
 import { PinCreationOverlay } from "../components/map/PinCreationOverlay";
+import { StreetView } from "../components/map/StreetView";
+import { PegmanControl } from "../components/map/PegmanControl";
 import { useMapLogic } from "../hooks/useMapLogic";
 import { useAuth } from "../hooks/useAuth";
 import { useAtlasStore } from "../store/useAtlasStore";
@@ -10,7 +12,7 @@ import { getUserPins } from "../api/pin";
 import "../style/map.css";
 
 const MapPage = () => {
-  const { mapContainer, loading } = useMapLogic();
+  const { mapContainer, mapInstance, loading } = useMapLogic();
   const { user } = useAuth();
   const { hydrateRemotePins } = useAtlasStore();
 
@@ -40,6 +42,8 @@ const MapPage = () => {
       <MapControls />
       <MapView mapContainer={mapContainer} />
       <PinCreationOverlay />
+      <PegmanControl mapInstance={mapInstance} mapContainer={mapContainer} />
+      <StreetView />
     </div>
   );
 };

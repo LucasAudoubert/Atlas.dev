@@ -16,7 +16,7 @@ export const PinList = () => {
 
   if (pins.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 py-6 text-slate-600">
+      <div className="flex flex-col items-center gap-2 py-6 text-white/70">
         <MapPin size={22} />
         <p className="text-xs text-center">
           Aucun pin.
